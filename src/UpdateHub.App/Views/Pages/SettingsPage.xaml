@@ -1,0 +1,208 @@
+<Page
+  x:Class="UpdateHub.App.Views.Pages.SettingsPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  Title="Ayarlar"
+  d:DesignHeight="900"
+  d:DesignWidth="1000"
+  mc:Ignorable="d">
+
+  <Page.Resources>
+    <Style x:Key="SettingRow" TargetType="Grid">
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style x:Key="SettingTitle" TargetType="TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style x:Key="SettingHint" TargetType="TextBlock" BasedOn="{StaticResource Muted}">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+    <Style x:Key="SettingsCard" TargetType="Border">
+      <Setter Property="Padding" Value="18,16" />
+      <Setter Property="Margin" Value="0,0,0,14" />
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+  </Page.Resources>
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="28,16,28,20" MaxWidth="900" HorizontalAlignment="Left">
+      <TextBlock Style="{StaticResource PageTitle}" Text="Ayarlar" />
+      <TextBlock Style="{StaticResource PageSubtitle}" Text="Değişiklikler anında kaydedilir." />
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Güncelleme politikası" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Style="{StaticResource SettingTitle}" Text="Yalnızca kararlı sürümler" />
+              <TextBlock Style="{StaticResource SettingHint}" Text="Beta, preview, nightly, canary ve insider yapıları listelenir ama “Tümünü güncelle” ile asla kurulmaz." />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.StableOnly}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Style="{StaticResource SettingTitle}" Text="Yalnızca resmi winget kaynakları" />
+              <TextBlock Style="{StaticResource SettingHint}" Text="Açıkken sadece “winget” (topluluk deposu, resmi indirme adresleri) ve “msstore” kaynakları kullanılır; özel kaynaklar yok sayılır." />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.AllowCustomWingetSources, Converter={StaticResource InverseBool}}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Style="{StaticResource SettingTitle}" Text="BIOS / UEFI'yi toplu güncellemeye dahil et" />
+              <TextBlock Style="{StaticResource SettingHint}" Text="Kapalıyken donanım yazılımı yalnızca BIOS sayfasından, tek tek ve onay alınarak kurulur (önerilen)." />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.AllowFirmwareInBulkUpdate}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Style="{StaticResource SettingTitle}" Text="Açılışta otomatik tara" />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.ScanOnStartup}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Taranacak kaynaklar" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource SettingTitle}" Text="Uygulamalar (winget / Microsoft Store)" />
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.IncludeApplications}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource SettingTitle}" Text="Windows güncellemeleri" />
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.IncludeWindowsUpdates}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource SettingTitle}" Text="Sürücüler (Windows Update)" />
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.IncludeDrivers}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource SettingTitle}" Text="BIOS / UEFI ve donanım yazılımı" />
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.IncludeFirmware}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Görünüm" />
+      <Border Style="{StaticResource SettingsCard}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel>
+            <TextBlock Style="{StaticResource SettingTitle}" Text="Tema" />
+            <TextBlock Style="{StaticResource SettingHint}" Text="Mica arka planı ve Fluent tasarımı Windows 11'de en iyi görünür; Windows 10'da düz arka plan kullanılır." />
+          </StackPanel>
+          <ComboBox
+            Grid.Column="1"
+            MinWidth="160"
+            SelectedIndex="{Binding ViewModel.ThemeIndex}">
+            <ComboBoxItem Content="Sistem" />
+            <ComboBoxItem Content="Açık" />
+            <ComboBoxItem Content="Koyu" />
+          </ComboBox>
+        </Grid>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Yoksayılan güncellemeler" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <TextBlock
+            Style="{StaticResource SettingHint}"
+            Text="Henüz yoksayılan bir güncelleme yok."
+            Visibility="{Binding ViewModel.ExcludedIds.Count, Converter={StaticResource NotEmptyToVisibility}, ConverterParameter=invert}" />
+          <ItemsControl ItemsSource="{Binding ViewModel.ExcludedIds}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                  <ui:Button
+                    Grid.Column="1"
+                    Command="{Binding DataContext.ViewModel.RemoveExcludedCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                    CommandParameter="{Binding}"
+                    Content="Geri al"
+                    Icon="{ui:SymbolIcon ArrowReset24}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Gelişmiş" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SettingTitle}" Text="winget.exe yolu (isteğe bağlı)" />
+          <TextBlock Style="{StaticResource SettingHint}" Text="Otomatik bulma başarısız olursa tam yolu girin." />
+          <ui:TextBox
+            Margin="0,6,0,14"
+            PlaceholderText="C:\Users\...\AppData\Local\Microsoft\WindowsApps\winget.exe"
+            Text="{Binding ViewModel.WingetPath, UpdateSourceTrigger=LostFocus}" />
+          <TextBlock Style="{StaticResource SettingTitle}" Text="HP Image Assistant yolu (isteğe bağlı)" />
+          <TextBlock Style="{StaticResource SettingHint}" Text="HP cihazlarda HPImageAssistant.exe'nin bulunduğu klasör farklıysa buraya yazın." />
+          <ui:TextBox
+            Margin="0,6,0,14"
+            PlaceholderText="C:\HPIA\HPImageAssistant.exe"
+            Text="{Binding ViewModel.HpImageAssistantPath, UpdateSourceTrigger=LostFocus}" />
+          <ui:Button
+            Command="{Binding ViewModel.OpenDataFolderCommand}"
+            Content="Veri klasörünü aç"
+            Icon="{ui:SymbolIcon FolderOpen24}" />
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Hakkında" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SettingTitle}" Text="{Binding ViewModel.AppVersion, Converter={StaticResource Format}, ConverterParameter='UpdateHub {0}'}" />
+          <TextBlock Style="{StaticResource SettingHint}" Text="Uygulamalar: winget / Microsoft Store · Windows ve sürücüler: Windows Update Aracısı · BIOS: Dell Command | Update, Lenovo System Update, HP Image Assistant ve Windows Update. Yalnızca resmi dağıtım kanallarındaki kararlı sürümler kurulur." />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</Page>

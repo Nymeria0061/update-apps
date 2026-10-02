@@ -1,0 +1,14 @@
+# Build
+bin/
+obj/
+out/
+publish/
+*.user
+*.suo
+.vs/
+.idea/
+*.swp
+TestResults/
+*.binlog
+# Local settings
+*.local.json

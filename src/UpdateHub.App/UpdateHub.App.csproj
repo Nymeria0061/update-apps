@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>UpdateHub.App</RootNamespace>
+    <AssemblyName>UpdateHub</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\UpdateHub.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <SelfContained>false</SelfContained>
+    <StartupObject>UpdateHub.App.App</StartupObject>
+    <!-- WPF + source generators: keep XAML compile strict. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="WPF-UI" Version="4.0.3" />
+    <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UpdateHub.Core\UpdateHub.Core.csproj" />
+    <ProjectReference Include="..\UpdateHub.Windows\UpdateHub.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\UpdateHub.ico" />
+    <Resource Include="Assets\UpdateHub.png" />
+  </ItemGroup>
+
+</Project>
