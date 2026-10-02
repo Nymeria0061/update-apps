@@ -109,6 +109,16 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
     [ObservableProperty]
     private bool _rebootRequired;
 
+    /// <summary>Human readable outcome of the last install run, shown on every list page until the next scan.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLastInstallSummary))]
+    private string? _lastInstallSummary;
+
+    [ObservableProperty]
+    private bool _lastInstallHadFailures;
+
+    public bool HasLastInstallSummary => !string.IsNullOrEmpty(LastInstallSummary);
+
     [ObservableProperty]
     private DateTimeOffset? _lastScan;
 
@@ -183,6 +193,8 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
         IsProgressIndeterminate = true;
         StatusMessage = "Güncelleme kaynakları taranıyor…";
         RebootRequired = false;
+        LastInstallSummary = null;
+        LastInstallHadFailures = false;
         foreach (var p in Providers)
         {
             p.Status = "Taranıyor…";
@@ -401,7 +413,12 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
 
             RebootRequired |= summary.RebootRequired;
             var message = $"{summary.Succeeded} başarılı, {summary.Failed} başarısız" + (summary.Manual > 0 ? $", {summary.Manual} elle kurulum" : string.Empty);
+            var failedNames = summary.Results.Where(r => r.Result.Outcome == InstallOutcome.Failed).Select(r => r.Item.Name).ToList();
             StatusMessage = "Kurulum tamamlandı: " + message + (RebootRequired ? " · Yeniden başlatma gerekiyor." : string.Empty);
+            LastInstallHadFailures = summary.Failed > 0;
+            LastInstallSummary = $"{DateTime.Now:HH:mm} · {message}"
+                                 + (failedNames.Count > 0 ? " — başarısız: " + string.Join(", ", failedNames.Take(3)) + (failedNames.Count > 3 ? "…" : string.Empty) : string.Empty)
+                                 + (RebootRequired ? " · Tamamlanması için yeniden başlatın." : string.Empty);
             _snackbar.Show(
                 "Kurulum tamamlandı",
                 message,

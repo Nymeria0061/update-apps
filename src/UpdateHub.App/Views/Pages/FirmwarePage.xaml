@@ -8,6 +8,7 @@
   Title="BIOS / UEFI"
   d:DesignHeight="760"
   d:DesignWidth="1000"
+  ScrollViewer.CanContentScroll="False"
   mc:Ignorable="d">
 
   <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -135,7 +136,13 @@
         Text="Bulunan donanım yazılımı güncellemeleri" />
 
       <Grid Grid.Row="4">
-        <ItemsControl ItemTemplate="{StaticResource UpdateItemTemplate}" ItemsSource="{Binding ViewModel.View}" />
+        <StackPanel>
+          <ContentControl
+            Content="{Binding ViewModel.Center}"
+            ContentTemplate="{StaticResource InstallSummaryBanner}"
+            Focusable="False" />
+          <ItemsControl ItemTemplate="{StaticResource UpdateItemTemplate}" ItemsSource="{Binding ViewModel.View}" />
+        </StackPanel>
         <StackPanel Style="{StaticResource EmptyState}" Visibility="{Binding ViewModel.IsEmpty, Converter={StaticResource BoolToVisibility}}">
           <ui:SymbolIcon
             HorizontalAlignment="Center"

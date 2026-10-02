@@ -21,6 +21,7 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
     <ui:TitleBar
@@ -102,10 +103,75 @@
       </ui:NavigationView.FooterMenuItems>
     </ui:NavigationView>
 
+    <!-- Global status bar: what is happening right now, on every page -->
+    <Border
+      Grid.Row="2"
+      Padding="16,8"
+      Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+      BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+      BorderThickness="0,1,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <ui:ProgressRing
+          Grid.Column="0"
+          Width="18"
+          Height="18"
+          Margin="0,0,10,0"
+          VerticalAlignment="Center"
+          IsIndeterminate="True"
+          Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVisibility}}" />
+        <ui:SymbolIcon
+          Grid.Column="0"
+          Margin="0,0,10,0"
+          VerticalAlignment="Center"
+          Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+          Symbol="Info24"
+          Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
+
+        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <TextBlock
+            FontSize="12"
+            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+            Text="{Binding ViewModel.StatusMessage}"
+            TextTrimming="CharacterEllipsis" />
+          <ProgressBar
+            Height="4"
+            Margin="0,6,0,0"
+            IsIndeterminate="{Binding ViewModel.IsProgressIndeterminate}"
+            Maximum="100"
+            Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVisibility}}"
+            Value="{Binding ViewModel.ProgressPercent, Mode=OneWay}" />
+        </StackPanel>
+
+        <ui:Button
+          Grid.Column="2"
+          Margin="12,0,0,0"
+          Appearance="Secondary"
+          Command="{Binding ViewModel.InstallAllCancelCommand}"
+          Content="Durdur"
+          Icon="{ui:SymbolIcon Stop24}"
+          Visibility="{Binding ViewModel.IsInstalling, Converter={StaticResource BoolToVisibility}}" />
+        <ui:Button
+          Grid.Column="3"
+          Margin="12,0,0,0"
+          Appearance="Primary"
+          Command="{Binding ViewModel.RestartNowCommand}"
+          Content="Yeniden başlat"
+          Icon="{ui:SymbolIcon Power24}"
+          Visibility="{Binding ViewModel.RebootRequired, Converter={StaticResource BoolToVisibility}}" />
+      </Grid>
+    </Border>
+
     <ContentPresenter
       x:Name="RootContentDialog"
       Grid.Row="0"
-      Grid.RowSpan="2" />
+      Grid.RowSpan="3" />
 
     <ui:SnackbarPresenter
       x:Name="SnackbarPresenter"

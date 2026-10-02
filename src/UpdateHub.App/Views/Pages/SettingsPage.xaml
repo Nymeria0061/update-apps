@@ -8,6 +8,7 @@
   Title="Ayarlar"
   d:DesignHeight="900"
   d:DesignWidth="1000"
+  ScrollViewer.CanContentScroll="False"
   mc:Ignorable="d">
 
   <Page.Resources>

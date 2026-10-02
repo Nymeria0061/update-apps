@@ -11,15 +11,48 @@
   <conv:NullableDoubleConverter x:Key="NullableDouble" />
   <conv:FormatConverter x:Key="Format" />
 
+  <!-- Row border colour follows the install state so results are visible at a glance. -->
+  <Style x:Key="UpdateRowBorder" TargetType="Border">
+    <Setter Property="Margin" Value="0,0,0,8" />
+    <Setter Property="Padding" Value="14,12" />
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsBusy}" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </DataTrigger>
+      <DataTrigger Binding="{Binding IsDone}" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </DataTrigger>
+      <DataTrigger Binding="{Binding IsFailed}" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
+  <Style x:Key="StatusMessageText" TargetType="TextBlock">
+    <Setter Property="Margin" Value="0,4,0,0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Style.Triggers>
+      <DataTrigger Binding="{Binding IsFailed}" Value="True">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </DataTrigger>
+      <DataTrigger Binding="{Binding IsDone}" Value="True">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+      </DataTrigger>
+    </Style.Triggers>
+  </Style>
+
   <!-- One update row. Shared by the Applications, Windows & Drivers and Firmware pages. -->
   <DataTemplate x:Key="UpdateItemTemplate" DataType="{x:Type vm:UpdateItemViewModel}">
-    <Border
-      Margin="0,0,0,8"
-      Padding="14,12"
-      Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-      BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-      BorderThickness="1"
-      CornerRadius="8">
+    <Border Style="{StaticResource UpdateRowBorder}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto" />
@@ -34,7 +67,7 @@
           VerticalAlignment="Center"
           IsChecked="{Binding IsSelected, Mode=TwoWay}"
           IsEnabled="{Binding IsActionable}"
-          Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}" />
+          Visibility="{Binding ShowCheckbox, Converter={StaticResource BoolToVisibility}}" />
 
         <ui:SymbolIcon
           Grid.Column="1"
@@ -117,11 +150,8 @@
             Visibility="{Binding ManualInstructions, Converter={StaticResource NotEmptyToVisibility}}" />
 
           <TextBlock
-            Margin="0,4,0,0"
-            FontSize="12"
-            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+            Style="{StaticResource StatusMessageText}"
             Text="{Binding StatusMessage}"
-            TextTrimming="CharacterEllipsis"
             Visibility="{Binding StatusMessage, Converter={StaticResource NotEmptyToVisibility}}" />
 
           <ProgressBar
@@ -138,38 +168,44 @@
           VerticalAlignment="Center"
           Orientation="Horizontal">
 
+          <!-- State badges: exactly one of these is visible once something happened -->
           <ui:ProgressRing
             Width="20"
             Height="20"
-            Margin="0,0,10,0"
+            Margin="0,0,8,0"
             IsIndeterminate="True"
             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
-
-          <ui:SymbolIcon
-            Margin="0,0,6,0"
-            Foreground="{DynamicResource SystemFillColorSuccessBrush}"
-            Symbol="CheckmarkCircle24"
-            Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibility}}" />
-
-          <ui:SymbolIcon
-            Margin="0,0,6,0"
-            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-            Symbol="ErrorCircle24"
-            Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}" />
-
-          <TextBlock
-            Margin="0,0,12,0"
+          <ui:Badge
+            Margin="0,0,8,0"
             VerticalAlignment="Center"
-            FontSize="12"
-            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-            Text="{Binding StateLabel}" />
+            Appearance="Info"
+            Content="{Binding StateLabel}"
+            Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+          <ui:Badge
+            Margin="0,0,8,0"
+            VerticalAlignment="Center"
+            Appearance="Success"
+            Content="{Binding StateLabel}"
+            Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibility}}" />
+          <ui:Badge
+            Margin="0,0,8,0"
+            VerticalAlignment="Center"
+            Appearance="Danger"
+            Content="{Binding StateLabel}"
+            Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}" />
+          <ui:Badge
+            Margin="0,0,8,0"
+            VerticalAlignment="Center"
+            Appearance="Caution"
+            Content="{Binding StateLabel}"
+            Visibility="{Binding IsManual, Converter={StaticResource BoolToVisibility}}" />
 
           <ui:Button
             Appearance="Primary"
             Command="{Binding InstallCommand}"
-            Content="Güncelle"
+            Content="{Binding InstallButtonLabel}"
             Icon="{ui:SymbolIcon ArrowDownload24}"
-            Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}" />
+            Visibility="{Binding ShowInstallButton, Converter={StaticResource BoolToVisibility}}" />
 
           <ui:DropDownButton
             Margin="6,0,0,0"
@@ -194,9 +230,67 @@
     </Border>
   </DataTemplate>
 
-  <!-- Compact list header used above each update list -->
-  <Style x:Key="ListToolbar" TargetType="StackPanel">
-    <Setter Property="Orientation" Value="Horizontal" />
-    <Setter Property="Margin" Value="0,14,0,10" />
-  </Style>
+  <!-- Install-result banner shown above every update list after an install run -->
+  <DataTemplate x:Key="InstallSummaryBanner" DataType="{x:Type vm:UpdateCenterViewModel}">
+    <Border
+      Margin="0,0,0,10"
+      Padding="14,10"
+      Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+      BorderThickness="1"
+      CornerRadius="8"
+      Visibility="{Binding HasLastInstallSummary, Converter={StaticResource BoolToVisibility}}">
+      <Border.Style>
+        <Style TargetType="Border">
+          <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding LastInstallHadFailures}" Value="True">
+              <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </Border.Style>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ui:SymbolIcon
+          Grid.Column="0"
+          Margin="0,0,10,0"
+          VerticalAlignment="Center"
+          Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+          Symbol="CheckmarkCircle24"
+          Visibility="{Binding LastInstallHadFailures, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
+        <ui:SymbolIcon
+          Grid.Column="0"
+          Margin="0,0,10,0"
+          VerticalAlignment="Center"
+          Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+          Symbol="Warning24"
+          Visibility="{Binding LastInstallHadFailures, Converter={StaticResource BoolToVisibility}}" />
+        <TextBlock
+          Grid.Column="1"
+          VerticalAlignment="Center"
+          FontWeight="SemiBold"
+          Text="{Binding LastInstallSummary}"
+          TextWrapping="Wrap" />
+        <ui:Button
+          Grid.Column="2"
+          Margin="10,0,0,0"
+          Appearance="Primary"
+          Command="{Binding RestartNowCommand}"
+          Content="Yeniden başlat"
+          Icon="{ui:SymbolIcon Power24}"
+          Visibility="{Binding RebootRequired, Converter={StaticResource BoolToVisibility}}" />
+        <ui:Button
+          Grid.Column="3"
+          Margin="6,0,0,0"
+          Command="{Binding ScanCommand}"
+          Content="Yeniden tara"
+          Icon="{ui:SymbolIcon ArrowSync24}" />
+      </Grid>
+    </Border>
+  </DataTemplate>
 </ResourceDictionary>

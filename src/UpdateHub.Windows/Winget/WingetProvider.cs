@@ -177,9 +177,13 @@ public sealed class WingetProvider : IUpdateProvider
             return InstallResult.Fail("Kurulum zaman aşımına uğradı.", result.ExitCode);
         }
 
+        if (result.ExitCode == 0)
+        {
+            return await VerifyInstalledVersionAsync(exe, item, row, cancellationToken).ConfigureAwait(false);
+        }
+
         return result.ExitCode switch
         {
-            0 => InstallResult.Ok(),
             UpdateNotApplicable or InstallAlreadyInstalled => InstallResult.UpToDate(),
             InstallRebootRequiredToFinish or InstallRebootRequiredForInstall or InstallRebootInitiated =>
                 InstallResult.Reboot("Kurulumun tamamlanması için yeniden başlatma gerekiyor."),
@@ -191,6 +195,48 @@ public sealed class WingetProvider : IUpdateProvider
             NoApplicationsFound => InstallResult.Fail("Paket bulunamadı.", result.ExitCode),
             _ => InstallResult.Fail(Tail(result.StandardOutput + result.StandardError) ?? $"winget çıkış kodu 0x{result.ExitCode:X8}", result.ExitCode),
         };
+    }
+
+    /// <summary>
+    /// winget exit code 0 only says the installer ran; ask winget what is installed now so the user
+    /// sees "verified: version X" instead of having to trust the exit code.
+    /// </summary>
+    private async Task<InstallResult> VerifyInstalledVersionAsync(string exe, UpdateItem item, WingetUpgradeRow? row, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var args = new List<string> { "list", "--id", item.Id, "--exact", "--accept-source-agreements", "--disable-interactivity" };
+            if (row is not null)
+            {
+                args.AddRange(["--source", row.Source]);
+            }
+
+            var list = await _runner.RunAsync(new ProcessRequest(exe, args) { Timeout = TimeSpan.FromSeconds(90) }, cancellationToken).ConfigureAwait(false);
+            var installed = WingetOutputParser.ParseListTable(list.StandardOutput)
+                .FirstOrDefault(r => r.Id.Equals(item.Id, StringComparison.OrdinalIgnoreCase));
+
+            if (installed is null || string.IsNullOrWhiteSpace(installed.Version))
+            {
+                return InstallResult.Ok("Kurulum tamamlandı (winget sürümü doğrulayamadı).");
+            }
+
+            if (string.IsNullOrWhiteSpace(item.AvailableVersion) || VersionComparer.Compare(installed.Version, item.AvailableVersion) >= 0)
+            {
+                return InstallResult.Ok($"Doğrulandı: yüklü sürüm {installed.Version}");
+            }
+
+            _logger.LogWarning("{Id}: winget reported success but installed version is {Installed}, expected {Expected}", item.Id, installed.Version, item.AvailableVersion);
+            return InstallResult.Ok($"Yükleyici tamamlandı ancak winget hâlâ {installed.Version} görüyor; uygulama bir sonraki açılışta güncellenebilir.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Post-install verification failed for {Id}", item.Id);
+            return InstallResult.Ok("Kurulum tamamlandı (sürüm doğrulaması yapılamadı).");
+        }
     }
 
     /// <summary>Installs a package that is not yet present (used for the OEM firmware tools).</summary>

@@ -87,6 +87,33 @@ public class WingetOutputParserTests
     }
 
     [Fact]
+    public void Parses_list_table_with_four_columns()
+    {
+        const string output = """
+            Name                 Id                     Version        Source
+            --------------------------------------------------------------------
+            Google Chrome        Google.Chrome          129.0.6668.59  winget
+            """;
+        var row = Assert.Single(WingetOutputParser.ParseListTable(output));
+        Assert.Equal("Google.Chrome", row.Id);
+        Assert.Equal("129.0.6668.59", row.Version);
+        Assert.Equal("winget", row.Source);
+    }
+
+    [Fact]
+    public void Parses_list_table_with_available_column()
+    {
+        const string output = """
+            Name                 Id                     Version        Available      Source
+            -----------------------------------------------------------------------------------
+            Google Chrome        Google.Chrome          128.0.6613.85  129.0.6668.59  winget
+            """;
+        var row = Assert.Single(WingetOutputParser.ParseListTable(output));
+        Assert.Equal("128.0.6613.85", row.Version);
+        Assert.Equal("winget", row.Source);
+    }
+
+    [Fact]
     public void Reads_upgrade_count_from_summary_line()
     {
         Assert.Equal(4, WingetOutputParser.ParseUpgradeCount(EnglishOutput));

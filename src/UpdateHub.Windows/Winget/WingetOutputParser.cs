@@ -11,6 +11,8 @@ public sealed record WingetUpgradeRow(string Name, string Id, string Version, st
         Version.StartsWith('<');
 }
 
+public sealed record WingetListRow(string Name, string Id, string Version, string Source);
+
 /// <summary>
 /// Parses the table printed by <c>winget upgrade</c>. The parser is locale independent:
 /// it locates the header by the dashed separator line and derives column offsets from the header words.
@@ -161,6 +163,73 @@ public static partial class WingetOutputParser
         }
 
         return result;
+    }
+
+    [GeneratedRegex(@"^(?<name>.+?)\s{2,}(?<id>\S+)\s+(?<ver>\S+)(?:\s+(?<avail>\S+))?\s+(?<src>\S+)\s*$")]
+    private static partial Regex ListRowFallbackRegex();
+
+    /// <summary>
+    /// Parses the table printed by <c>winget list</c>. The table has either four columns
+    /// (Name, Id, Version, Source) or five when an upgrade is available (…, Available, Source).
+    /// </summary>
+    public static IReadOnlyList<WingetListRow> ParseListTable(string output)
+    {
+        var lines = Normalize(output);
+        var rows = new List<WingetListRow>();
+
+        for (var i = 1; i < lines.Count; i++)
+        {
+            if (!SeparatorRegex().IsMatch(lines[i]))
+            {
+                continue;
+            }
+
+            var columns = WordRegex().Matches(lines[i - 1]).Select(m => m.Index).ToList();
+            if (columns.Count < 4)
+            {
+                continue;
+            }
+
+            for (var j = i + 1; j < lines.Count; j++)
+            {
+                var line = lines[j];
+                if (string.IsNullOrWhiteSpace(line) || SeparatorRegex().IsMatch(line))
+                {
+                    break;
+                }
+
+                WingetListRow? row = null;
+                if (line.Length > columns[^1])
+                {
+                    var name = Slice(line, columns[0], columns[1]);
+                    var id = Slice(line, columns[1], columns[2]);
+                    var version = Slice(line, columns[2], columns[3]);
+                    var source = Slice(line, columns[^1], null);
+                    if (LooksLikeId(id) && !version.Contains(' ') && !source.Contains(' ') && name.Length > 0)
+                    {
+                        row = new WingetListRow(name, id, version, source);
+                    }
+                }
+
+                if (row is null)
+                {
+                    var m = ListRowFallbackRegex().Match(line);
+                    if (m.Success && LooksLikeId(m.Groups["id"].Value))
+                    {
+                        row = new WingetListRow(m.Groups["name"].Value.Trim(), m.Groups["id"].Value, m.Groups["ver"].Value, m.Groups["src"].Value);
+                    }
+                }
+
+                if (row is null)
+                {
+                    break;
+                }
+
+                rows.Add(row);
+            }
+        }
+
+        return rows;
     }
 
     /// <summary>Extracts the "Available" count from the summary line; null when not found.</summary>

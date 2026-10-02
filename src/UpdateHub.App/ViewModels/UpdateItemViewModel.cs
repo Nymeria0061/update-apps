@@ -106,7 +106,11 @@ public partial class UpdateItemViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsBusy))]
     [NotifyPropertyChangedFor(nameof(IsDone))]
     [NotifyPropertyChangedFor(nameof(IsFailed))]
+    [NotifyPropertyChangedFor(nameof(IsManual))]
     [NotifyPropertyChangedFor(nameof(IsActionable))]
+    [NotifyPropertyChangedFor(nameof(ShowInstallButton))]
+    [NotifyPropertyChangedFor(nameof(ShowCheckbox))]
+    [NotifyPropertyChangedFor(nameof(InstallButtonLabel))]
     [NotifyPropertyChangedFor(nameof(StateLabel))]
     private ItemState _state = ItemState.Pending;
 
@@ -125,7 +129,16 @@ public partial class UpdateItemViewModel : ObservableObject
 
     public bool IsFailed => State is ItemState.Failed;
 
+    public bool IsManual => State is ItemState.Manual;
+
     public bool IsActionable => State is ItemState.Pending or ItemState.Failed or ItemState.Cancelled or ItemState.Manual;
+
+    /// <summary>The per-row "Güncelle" button only makes sense while the item can still be installed.</summary>
+    public bool ShowInstallButton => CanInstall && IsActionable;
+
+    public bool ShowCheckbox => CanInstall && !IsDone;
+
+    public string InstallButtonLabel => State is ItemState.Failed or ItemState.Cancelled ? "Yeniden dene" : "Güncelle";
 
     public string StateLabel => State switch
     {
