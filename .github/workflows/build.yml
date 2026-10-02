@@ -6,6 +6,11 @@ on:
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Create a GitHub Release with this tag (e.g. v1.0.0); leave empty to only build"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -67,10 +72,25 @@ jobs:
             UpdateHub-${{ matrix.rid }}.zip
             UpdateHub-${{ matrix.rid }}-selfcontained.zip
 
+  # One release per tag (or per manual run that sets release_tag), built from both matrix jobs.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: UpdateHub-*
+          merge-multiple: true
+          path: dist
+
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            UpdateHub-${{ matrix.rid }}.zip
-            UpdateHub-${{ matrix.rid }}-selfcontained.zip
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: UpdateHub ${{ inputs.release_tag || github.ref_name }}
+          body: |
+            **İndirme:** `UpdateHub-win-x64-selfcontained.zip` dosyasını indirip açın ve `UpdateHub.exe` dosyasını yönetici olarak çalıştırın (.NET kurulumu gerekmez).
+            ARM64 cihazlar için `UpdateHub-win-arm64-selfcontained.zip`. `-selfcontained` olmayan paketler .NET 8 Desktop Runtime ister.
+          files: dist/*.zip
