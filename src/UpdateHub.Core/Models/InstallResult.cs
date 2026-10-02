@@ -3,6 +3,9 @@ namespace UpdateHub.Core.Models;
 public enum InstallOutcome
 {
     Success,
+
+    /// <summary>The installer finished without error but the result could not be confirmed (see Message).</summary>
+    SuccessWithWarning,
     AlreadyUpToDate,
     RebootRequired,
     ManualActionRequired,
@@ -12,11 +15,13 @@ public enum InstallOutcome
 
 public sealed record InstallResult(InstallOutcome Outcome, string? Message = null, int? ExitCode = null)
 {
-    public bool IsSuccess => Outcome is InstallOutcome.Success or InstallOutcome.AlreadyUpToDate or InstallOutcome.RebootRequired;
+    public bool IsSuccess => Outcome is InstallOutcome.Success or InstallOutcome.SuccessWithWarning or InstallOutcome.AlreadyUpToDate or InstallOutcome.RebootRequired;
 
     public bool RebootRequired => Outcome == InstallOutcome.RebootRequired;
 
     public static InstallResult Ok(string? message = null) => new(InstallOutcome.Success, message);
+
+    public static InstallResult Warning(string message) => new(InstallOutcome.SuccessWithWarning, message);
 
     public static InstallResult Reboot(string? message = null) => new(InstallOutcome.RebootRequired, message);
 

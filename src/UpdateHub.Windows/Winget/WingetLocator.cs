@@ -8,7 +8,7 @@ namespace UpdateHub.Windows.Winget;
 /// so the packaged install directory is probed as a fallback.
 /// </summary>
 [SupportedOSPlatform("windows")]
-public sealed class WingetLocator
+public class WingetLocator
 {
     private readonly ISettingsService _settings;
     private string? _resolved;
@@ -18,7 +18,7 @@ public sealed class WingetLocator
         _settings = settings;
     }
 
-    public string? Resolve()
+    public virtual string? Resolve()
     {
         if (_resolved is not null && File.Exists(_resolved))
         {

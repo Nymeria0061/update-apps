@@ -115,7 +115,7 @@ public class UpdateOrchestratorTests
     }
 
     [Fact]
-    public void Bulk_selection_excludes_prerelease_manual_and_firmware_by_default()
+    public void Bulk_selection_excludes_prerelease_manual_unknown_and_firmware_by_default()
     {
         var settings = new FakeSettings();
         var orchestrator = new UpdateOrchestrator([], settings);
@@ -124,6 +124,7 @@ public class UpdateOrchestratorTests
             Item("stable", "p", UpdateCategory.Application),
             Item("beta", "p", UpdateCategory.Application, UpdateChannel.PreRelease),
             Item("manual", "p", UpdateCategory.Application, auto: false),
+            Item("unknown", "p", UpdateCategory.Application) with { IsInstalledVersionUnknown = true },
             Item("bios", "p", UpdateCategory.Firmware),
         };
 
@@ -131,7 +132,8 @@ public class UpdateOrchestratorTests
 
         settings.Current.StableOnly = false;
         settings.Current.AllowFirmwareInBulkUpdate = true;
-        Assert.Equal(["stable", "beta", "bios"], orchestrator.SelectForBulkInstall(items).Select(i => i.Id));
+        settings.Current.IncludeUnknownVersionsInBulk = true;
+        Assert.Equal(["stable", "beta", "unknown", "bios"], orchestrator.SelectForBulkInstall(items).Select(i => i.Id));
     }
 
     [Fact]

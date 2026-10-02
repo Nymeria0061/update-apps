@@ -42,8 +42,9 @@ public sealed partial class ProviderStatusViewModel : ObservableObject
 /// Single source of truth for the whole app: the last scan, the running operation and its progress.
 /// Pages are thin projections over <see cref="Items"/>.
 /// </summary>
-public sealed partial class UpdateCenterViewModel : ObservableObject
+public sealed partial class UpdateCenterViewModel : ObservableObject, IUpdateItemActions
 {
+    private readonly IReadOnlyList<IPackageActionProvider> _packageActions;
     private readonly UpdateOrchestrator _orchestrator;
     private readonly ISettingsService _settings;
     private readonly ISystemInfoProvider _systemInfo;
@@ -59,8 +60,10 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
         IRebootService reboot,
         ISnackbarService snackbar,
         IContentDialogService dialogs,
+        IEnumerable<IPackageActionProvider> packageActions,
         ILogger<UpdateCenterViewModel> logger)
     {
+        _packageActions = packageActions.ToList();
         _orchestrator = orchestrator;
         _settings = settings;
         _systemInfo = systemInfo;
@@ -257,7 +260,7 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
 
             foreach (var item in result.Items)
             {
-                Items.Add(new UpdateItemViewModel(item, InstallSingleAsync, ExcludeAsync));
+                Items.Add(new UpdateItemViewModel(item, this));
             }
         }
 
@@ -453,6 +456,38 @@ public sealed partial class UpdateCenterViewModel : ObservableObject
             ItemsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    Task IUpdateItemActions.InstallAsync(UpdateItemViewModel item) => InstallSingleAsync(item);
+
+    Task IUpdateItemActions.ExcludeAsync(UpdateItemViewModel item) => ExcludeAsync(item);
+
+    async Task IUpdateItemActions.SkipVersionAsync(UpdateItemViewModel item)
+    {
+        var provider = _packageActions.FirstOrDefault(p => p.Supports(item.Item));
+        if (provider is null || string.IsNullOrWhiteSpace(item.Item.AvailableVersion))
+        {
+            await ExcludeAsync(item);
+            return;
+        }
+
+        await provider.SkipVersionAsync(item.Item, CancellationToken.None);
+        Items.Remove(item);
+        RecalculateCounts();
+        ItemsChanged?.Invoke(this, EventArgs.Empty);
+        _snackbar.Show("Sürüm atlandı", $"{item.Name} {item.Item.AvailableVersion} artık listelenmeyecek; yeni bir sürüm çıkınca görünür. Ayarlar'dan geri alabilirsiniz.", ControlAppearance.Secondary, new SymbolIcon(SymbolRegular.Eye24), TimeSpan.FromSeconds(6));
+    }
+
+    Task<PackageLinks?> IUpdateItemActions.GetLinksAsync(UpdateItem item)
+    {
+        var provider = _packageActions.FirstOrDefault(p => p.Supports(item));
+        return provider is null ? Task.FromResult<PackageLinks?>(null) : provider.GetLinksAsync(item, CancellationToken.None);
+    }
+
+    string? IUpdateItemActions.FindExecutable(UpdateItem item) =>
+        _packageActions.FirstOrDefault(p => p.Supports(item))?.FindExecutable(item);
+
+    void IUpdateItemActions.LaunchExecutable(string path) =>
+        _packageActions.First().LaunchExecutable(path);
 
     private async Task ExcludeAsync(UpdateItemViewModel item)
     {

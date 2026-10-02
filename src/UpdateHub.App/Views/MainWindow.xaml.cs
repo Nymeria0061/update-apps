@@ -20,6 +20,7 @@ public partial class MainWindow : FluentWindow
         DataContext = this;
 
         InitializeComponent();
+        FitToWorkArea();
 
         RootNavigation.SetPageProviderService(pageProvider);
         navigationService.SetNavigationControl(RootNavigation);
@@ -30,6 +31,21 @@ public partial class MainWindow : FluentWindow
     }
 
     public UpdateCenterViewModel ViewModel { get; }
+
+    /// <summary>Default size must never exceed the monitor's work area (the bottom status bar was getting cut off on 768p screens).</summary>
+    private void FitToWorkArea()
+    {
+        var area = System.Windows.SystemParameters.WorkArea;
+        if (Height > area.Height - 16)
+        {
+            Height = Math.Max(MinHeight, area.Height - 16);
+        }
+
+        if (Width > area.Width - 16)
+        {
+            Width = Math.Max(MinWidth, area.Width - 16);
+        }
+    }
 
     protected override void OnClosing(CancelEventArgs e)
     {

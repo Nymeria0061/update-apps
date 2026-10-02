@@ -48,6 +48,7 @@ public partial class App : Application
             services.AddSingleton<WingetLocator>();
             services.AddSingleton<WingetProvider>();
             services.AddSingleton<IUpdateProvider>(sp => sp.GetRequiredService<WingetProvider>());
+            services.AddSingleton<IPackageActionProvider, WingetPackageActions>();
             services.AddSingleton<WindowsUpdateAgent>();
             services.AddSingleton<IUpdateProvider, WindowsSoftwareUpdateProvider>();
             services.AddSingleton<IUpdateProvider, WindowsDriverUpdateProvider>();

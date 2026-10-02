@@ -79,6 +79,17 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel>
+              <TextBlock Style="{StaticResource SettingTitle}" Text="Yüklü sürümü bilinmeyen uygulamaları toplu güncellemeye dahil et" />
+              <TextBlock Style="{StaticResource SettingHint}" Text="winget bazı uygulamaların yüklü sürümünü okuyamaz (“Yüklü sürüm bilinmiyor” rozeti). Bunlar zaten güncel olabilir; kapalıyken yalnızca elle seçilerek kurulur." />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.IncludeUnknownVersionsInBulk}" />
+          </Grid>
+          <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
               <TextBlock Style="{StaticResource SettingTitle}" Text="Açılışta otomatik tara" />
             </StackPanel>
             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ViewModel.ScanOnStartup}" />
@@ -165,6 +176,68 @@
                   <ui:Button
                     Grid.Column="1"
                     Command="{Binding DataContext.ViewModel.RemoveExcludedCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                    CommandParameter="{Binding}"
+                    Content="Geri al"
+                    Icon="{ui:SymbolIcon ArrowReset24}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="winget ile güncellenemeyen uygulamalar" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SettingHint}" Text="Bu uygulamalar “WinGet ile yükseltilemez” yanıtı verdi (yayıncı kendi güncelleyicisini kullanıyor). Listede “Elle güncelleme gerekli” olarak gösterilirler; sıfırlarsanız bir sonraki taramada yeniden denenir." />
+          <TextBlock
+            Margin="0,6,0,0"
+            Style="{StaticResource SettingHint}"
+            Text="Henüz böyle bir uygulama yok."
+            Visibility="{Binding ViewModel.WingetManualIds.Count, Converter={StaticResource NotEmptyToVisibility}, ConverterParameter=invert}" />
+          <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding ViewModel.WingetManualIds}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                  <ui:Button
+                    Grid.Column="1"
+                    Command="{Binding DataContext.ViewModel.RemoveManualCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                    CommandParameter="{Binding}"
+                    Content="Sıfırla"
+                    Icon="{ui:SymbolIcon ArrowReset24}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Style="{StaticResource SectionTitle}" Text="Atlanan sürümler" />
+      <Border Style="{StaticResource SettingsCard}">
+        <StackPanel>
+          <TextBlock Style="{StaticResource SettingHint}" Text="Yükleyici çalıştığı hâlde winget'in gördüğü sürüm değişmeyen (ya da hiç okunamayan) paketlerde o sürüm otomatik atlanır; böylece her taramada yeniden çıkmaz. Yeni bir sürüm yayınlanınca paket kendiliğinden geri gelir." />
+          <TextBlock
+            Margin="0,6,0,0"
+            Style="{StaticResource SettingHint}"
+            Text="Atlanan sürüm yok."
+            Visibility="{Binding ViewModel.SkippedVersions.Count, Converter={StaticResource NotEmptyToVisibility}, ConverterParameter=invert}" />
+          <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding ViewModel.SkippedVersions}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid Margin="0,0,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock VerticalAlignment="Center" Text="{Binding Label}" />
+                  <ui:Button
+                    Grid.Column="1"
+                    Command="{Binding DataContext.ViewModel.RemoveSkippedCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                     CommandParameter="{Binding}"
                     Content="Geri al"
                     Icon="{ui:SymbolIcon ArrowReset24}" />

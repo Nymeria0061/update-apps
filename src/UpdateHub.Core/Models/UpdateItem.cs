@@ -62,6 +62,12 @@ public sealed record UpdateItem
 
     public string? AvailableVersion { get; init; }
 
+    /// <summary>
+    /// The package manager could not read the installed version, so it cannot be sure the item is
+    /// actually outdated (winget "Unknown"). Such items are listed but not bulk-installed by default.
+    /// </summary>
+    public bool IsInstalledVersionUnknown { get; init; }
+
     public string? Publisher { get; init; }
 
     public string? Description { get; init; }

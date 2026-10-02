@@ -5,10 +5,10 @@
   xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
   xmlns:pages="clr-namespace:UpdateHub.App.Views.Pages"
   Title="UpdateHub"
-  Width="1200"
-  Height="780"
+  Width="1180"
+  Height="720"
   MinWidth="900"
-  MinHeight="600"
+  MinHeight="540"
   ExtendsContentIntoTitleBar="True"
   WindowBackdropType="Mica"
   WindowCornerPreference="Round"
@@ -176,7 +176,9 @@
     <ui:SnackbarPresenter
       x:Name="SnackbarPresenter"
       Grid.Row="1"
-      Margin="0,0,0,12"
+      MaxWidth="620"
+      Margin="0,0,16,12"
+      HorizontalAlignment="Right"
       VerticalAlignment="Bottom" />
   </Grid>
 </ui:FluentWindow>

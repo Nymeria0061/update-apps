@@ -100,6 +100,13 @@
             <ui:Badge
               Margin="0,0,6,0"
               VerticalAlignment="Center"
+              Appearance="Caution"
+              Content="Yüklü sürüm bilinmiyor"
+              ToolTip="winget yüklü sürümü okuyamadı; uygulama zaten güncel olabilir."
+              Visibility="{Binding IsInstalledVersionUnknown, Converter={StaticResource BoolToVisibility}}" />
+            <ui:Badge
+              Margin="0,0,6,0"
+              VerticalAlignment="Center"
               Appearance="Danger"
               Content="{Binding SeverityLabel}"
               Visibility="{Binding IsCriticalOrImportant, Converter={StaticResource BoolToVisibility}}" />
@@ -160,6 +167,48 @@
             Maximum="100"
             Value="{Binding Progress, Converter={StaticResource NullableDouble}, Mode=OneWay}"
             Visibility="{Binding Progress, Converter={StaticResource NotEmptyToVisibility}}" />
+
+          <!-- Alternatives when winget could not (or should not) do the update itself -->
+          <StackPanel Margin="0,8,0,0" Visibility="{Binding ShowAlternatives, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock
+              FontSize="12"
+              FontWeight="SemiBold"
+              Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+              Text="Alternatifler" />
+            <WrapPanel Margin="0,4,0,0">
+              <ui:Button
+                Margin="0,0,6,6"
+                Appearance="Primary"
+                Command="{Binding LaunchAppCommand}"
+                Content="Uygulamayı aç (kendi güncelleyicisi)"
+                Icon="{ui:SymbolIcon Play24}"
+                Visibility="{Binding CanLaunchApp, Converter={StaticResource BoolToVisibility}}" />
+              <ui:Button
+                Margin="0,0,6,6"
+                Command="{Binding DownloadInstallerCommand}"
+                Content="Resmi yükleyiciyi indir"
+                Icon="{ui:SymbolIcon ArrowDownload24}"
+                Visibility="{Binding ShowAppAlternatives, Converter={StaticResource BoolToVisibility}}" />
+              <ui:Button
+                Margin="0,0,6,6"
+                Command="{Binding OpenHomepageCommand}"
+                Content="Resmi siteyi aç"
+                Icon="{ui:SymbolIcon Globe24}" />
+              <ui:Button
+                Margin="0,0,6,6"
+                Command="{Binding SkipVersionCommand}"
+                Content="Bu sürümü atla"
+                Icon="{ui:SymbolIcon Eye24}"
+                Visibility="{Binding ShowAppAlternatives, Converter={StaticResource BoolToVisibility}}" />
+              <ui:ProgressRing
+                Width="16"
+                Height="16"
+                Margin="0,0,0,6"
+                VerticalAlignment="Center"
+                IsIndeterminate="True"
+                Visibility="{Binding IsResolvingLinks, Converter={StaticResource BoolToVisibility}}" />
+            </WrapPanel>
+          </StackPanel>
         </StackPanel>
 
         <StackPanel
@@ -186,13 +235,19 @@
             VerticalAlignment="Center"
             Appearance="Success"
             Content="{Binding StateLabel}"
-            Visibility="{Binding IsDone, Converter={StaticResource BoolToVisibility}}" />
+            Visibility="{Binding IsSucceeded, Converter={StaticResource BoolToVisibility}}" />
           <ui:Badge
             Margin="0,0,8,0"
             VerticalAlignment="Center"
             Appearance="Danger"
             Content="{Binding StateLabel}"
             Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}" />
+          <ui:Badge
+            Margin="0,0,8,0"
+            VerticalAlignment="Center"
+            Appearance="Caution"
+            Content="{Binding StateLabel}"
+            Visibility="{Binding IsWarning, Converter={StaticResource BoolToVisibility}}" />
           <ui:Badge
             Margin="0,0,8,0"
             VerticalAlignment="Center"
@@ -214,14 +269,34 @@
             <ui:DropDownButton.Flyout>
               <ContextMenu>
                 <ui:MenuItem
+                  Command="{Binding OpenHomepageCommand}"
+                  Header="Resmi siteyi aç"
+                  Icon="{ui:SymbolIcon Globe24}" />
+                <ui:MenuItem
+                  Command="{Binding DownloadInstallerCommand}"
+                  Header="Resmi yükleyiciyi indir"
+                  Icon="{ui:SymbolIcon ArrowDownload24}"
+                  Visibility="{Binding IsApplication, Converter={StaticResource BoolToVisibility}}" />
+                <ui:MenuItem
+                  Command="{Binding LaunchAppCommand}"
+                  Header="Uygulamayı aç"
+                  Icon="{ui:SymbolIcon Play24}"
+                  Visibility="{Binding IsApplication, Converter={StaticResource BoolToVisibility}}" />
+                <ui:MenuItem
                   Command="{Binding OpenInfoCommand}"
-                  Header="Bilgi sayfasını aç"
+                  Header="Paket bilgi sayfası (winget / Store)"
                   Icon="{ui:SymbolIcon Open24}"
                   IsEnabled="{Binding HasInfoUrl}" />
+                <Separator />
+                <ui:MenuItem
+                  Command="{Binding SkipVersionCommand}"
+                  Header="Bu sürümü atla (yenisi çıkınca göster)"
+                  Icon="{ui:SymbolIcon Eye24}"
+                  Visibility="{Binding IsApplication, Converter={StaticResource BoolToVisibility}}" />
                 <ui:MenuItem
                   Command="{Binding ExcludeCommand}"
-                  Header="Bu güncellemeyi yoksay"
-                  Icon="{ui:SymbolIcon Eye24}" />
+                  Header="Bu güncellemeyi hep yoksay"
+                  Icon="{ui:SymbolIcon Dismiss24}" />
               </ContextMenu>
             </ui:DropDownButton.Flyout>
           </ui:DropDownButton>

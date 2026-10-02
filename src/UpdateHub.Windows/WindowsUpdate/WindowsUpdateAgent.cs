@@ -312,13 +312,36 @@ public sealed class WindowsUpdateAgent
         try
         {
             int hr = result.GetUpdateResult(0).HResult;
-            return hr == 0 ? string.Empty : $", HRESULT 0x{hr:X8}";
+            return hr == 0 ? string.Empty : $", HRESULT 0x{hr:X8}: {DescribeHResult(hr)}";
         }
         catch (Exception)
         {
             return string.Empty;
         }
     }
+
+    /// <summary>Plain-language meaning of the Windows Update error codes users actually run into.</summary>
+    public static string DescribeHResult(int hr) => unchecked((uint)hr) switch
+    {
+        0x80070005 => "erişim reddedildi (yönetici izni / ilke)",
+        0x8007000E => "bellek yetersiz",
+        0x80070422 => "Windows Update hizmeti devre dışı; services.msc'den etkinleştirin",
+        0x80070643 => "yükleyici ölümcül hata verdi (çoğunlukla .NET/Defender tanım paketleri; yeniden başlatıp tekrar deneyin)",
+        0x80240016 => "başka bir kurulum sürüyor",
+        0x8024001E => "işlem sürerken Windows Update hizmeti durdu",
+        0x80240020 => "etkileşimli kullanıcı yok",
+        0x80240022 => "tüm güncellemeler başarısız oldu",
+        0x8024200D => "paketin yeniden indirilmesi gerekiyor; tekrar deneyin",
+        0x80242016 => "önce bekleyen yeniden başlatma tamamlanmalı",
+        0x8024402C => "güncelleme sunucusuna ulaşılamadı (ad çözümleme / proxy)",
+        0x80244022 => "güncelleme sunucusu hizmet veremiyor (HTTP 503); daha sonra deneyin",
+        0x8024401C => "güncelleme sunucusu zaman aşımı",
+        0x80073712 => "bileşen deposu bozuk; “DISM /Online /Cleanup-Image /RestoreHealth” çalıştırın",
+        0x800F0922 => "kurulum tamamlanamadı; sistem ayrılmış bölümü dolu olabilir",
+        0x80240034 => "indirme başarısız; tekrar deneyin",
+        0x8024000B => "işlem iptal edildi",
+        _ => "ayrıntı için Günlük sayfasına bakın",
+    };
 
     private static object CreateSession()
     {

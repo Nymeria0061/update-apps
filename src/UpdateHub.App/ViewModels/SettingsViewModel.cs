@@ -30,6 +30,12 @@ public sealed partial class SettingsViewModel : ObservableObject, INavigationAwa
 
     public ObservableCollection<string> ExcludedIds { get; } = new();
 
+    public ObservableCollection<string> WingetManualIds { get; } = new();
+
+    public ObservableCollection<SkippedVersionEntry> SkippedVersions { get; } = new();
+
+    [ObservableProperty] private bool _includeUnknownVersionsInBulk;
+
     [ObservableProperty] private bool _stableOnly;
     [ObservableProperty] private bool _scanOnStartup;
     [ObservableProperty] private bool _includeApplications;
@@ -58,10 +64,23 @@ public sealed partial class SettingsViewModel : ObservableObject, INavigationAwa
         ThemeIndex = (int)s.Theme;
         HpImageAssistantPath = s.HpImageAssistantPath;
         WingetPath = s.WingetPath;
+        IncludeUnknownVersionsInBulk = s.IncludeUnknownVersionsInBulk;
         ExcludedIds.Clear();
         foreach (var id in s.ExcludedIds)
         {
             ExcludedIds.Add(id);
+        }
+
+        WingetManualIds.Clear();
+        foreach (var id in s.WingetManualIds)
+        {
+            WingetManualIds.Add(id);
+        }
+
+        SkippedVersions.Clear();
+        foreach (var kv in s.SkippedVersions.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            SkippedVersions.Add(new SkippedVersionEntry(kv.Key, kv.Value));
         }
 
         _loading = false;
@@ -93,6 +112,9 @@ public sealed partial class SettingsViewModel : ObservableObject, INavigationAwa
         s.HpImageAssistantPath = string.IsNullOrWhiteSpace(HpImageAssistantPath) ? null : HpImageAssistantPath.Trim();
         s.WingetPath = string.IsNullOrWhiteSpace(WingetPath) ? null : WingetPath.Trim();
         s.ExcludedIds = ExcludedIds.ToList();
+        s.WingetManualIds = WingetManualIds.ToList();
+        s.SkippedVersions = SkippedVersions.ToDictionary(e => e.Id, e => e.Version);
+        s.IncludeUnknownVersionsInBulk = IncludeUnknownVersionsInBulk;
         await _settings.SaveAsync();
         _theme.Apply(s.Theme);
     }
@@ -108,6 +130,32 @@ public sealed partial class SettingsViewModel : ObservableObject, INavigationAwa
         ExcludedIds.Remove(id);
         await SaveAsync();
         _snackbar.Show("Geri alındı", $"{id} bir sonraki taramada yeniden listelenecek.", ControlAppearance.Secondary, new SymbolIcon(SymbolRegular.Eye24), TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private async Task RemoveSkippedAsync(SkippedVersionEntry? entry)
+    {
+        if (entry is null)
+        {
+            return;
+        }
+
+        SkippedVersions.Remove(entry);
+        await SaveAsync();
+        _snackbar.Show("Geri alındı", $"{entry.Id} {entry.Version} bir sonraki taramada yeniden listelenecek.", ControlAppearance.Secondary, new SymbolIcon(SymbolRegular.ArrowReset24), TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private async Task RemoveManualAsync(string? id)
+    {
+        if (id is null)
+        {
+            return;
+        }
+
+        WingetManualIds.Remove(id);
+        await SaveAsync();
+        _snackbar.Show("Sıfırlandı", $"{id} bir sonraki taramada yeniden winget ile denenecek.", ControlAppearance.Secondary, new SymbolIcon(SymbolRegular.ArrowReset24), TimeSpan.FromSeconds(4));
     }
 
     [RelayCommand]
@@ -130,4 +178,9 @@ public sealed partial class SettingsViewModel : ObservableObject, INavigationAwa
     }
 
     public Task OnNavigatedFromAsync() => Task.CompletedTask;
+}
+
+public sealed record SkippedVersionEntry(string Id, string Version)
+{
+    public string Label => $"{Id} — {Version}";
 }

@@ -19,6 +19,21 @@ public sealed class AppSettings
     /// <summary>Package / update ids the user never wants to see in "update all".</summary>
     public List<string> ExcludedIds { get; set; } = [];
 
+    /// <summary>
+    /// winget packages that reported "cannot be upgraded using WinGet" (the publisher ships its own
+    /// updater). They are shown as manual-only on later scans instead of failing again.
+    /// </summary>
+    public List<string> WingetManualIds { get; set; } = [];
+
+    /// <summary>Include packages whose installed version winget cannot read in "update all".</summary>
+    public bool IncludeUnknownVersionsInBulk { get; set; } = false;
+
+    /// <summary>
+    /// Package id → available version the user (or the post-install check) decided to skip, so a package
+    /// whose installer never changes the reported version does not reappear on every scan.
+    /// </summary>
+    public Dictionary<string, string> SkippedVersions { get; set; } = new();
+
     public bool ScanOnStartup { get; set; } = true;
 
     public bool IncludeApplications { get; set; } = true;

@@ -102,6 +102,7 @@ public sealed class UpdateOrchestrator
                 i.CanInstallAutomatically &&
                 (!settings.StableOnly || i.IsStable) &&
                 !settings.ExcludedIds.Contains(i.Id, StringComparer.OrdinalIgnoreCase) &&
+                (!i.IsInstalledVersionUnknown || settings.IncludeUnknownVersionsInBulk) &&
                 (i.Category != UpdateCategory.Firmware || settings.AllowFirmwareInBulkUpdate))
             .ToList();
     }

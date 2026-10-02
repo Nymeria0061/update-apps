@@ -11,7 +11,14 @@ public sealed record WingetUpgradeRow(string Name, string Id, string Version, st
         Version.StartsWith('<');
 }
 
-public sealed record WingetListRow(string Name, string Id, string Version, string Source);
+public sealed record WingetListRow(string Name, string Id, string Version, string Source)
+{
+    public bool IsVersionUnknown =>
+        string.IsNullOrWhiteSpace(Version) ||
+        Version.Equals("Unknown", StringComparison.OrdinalIgnoreCase) ||
+        Version.Equals("Bilinmiyor", StringComparison.OrdinalIgnoreCase) ||
+        Version.StartsWith('<');
+}
 
 /// <summary>
 /// Parses the table printed by <c>winget upgrade</c>. The parser is locale independent:
@@ -91,8 +98,8 @@ public static partial class WingetOutputParser
 
     private static WingetUpgradeRow? ParseRow(string line, List<int> columns)
     {
-        // Column based slicing (fast path).
-        if (columns.Count >= 5 && line.Length > columns[4])
+        // Column based slicing (fast path) — only when no cell overflows into the next column.
+        if (columns.Count >= 5 && line.Length > columns[4] && columns.Skip(1).All(c => IsCellBoundary(line, c)))
         {
             var name = Slice(line, columns[0], columns[1]);
             var id = Slice(line, columns[1], columns[2]);
@@ -119,6 +126,10 @@ public static partial class WingetOutputParser
 
         return null;
     }
+
+    /// <summary>A column boundary is trustworthy only if the character right before it is whitespace.</summary>
+    private static bool IsCellBoundary(string line, int column) =>
+        column >= line.Length || column == 0 || char.IsWhiteSpace(line[column - 1]);
 
     private static bool LooksLikeId(string id) =>
         !string.IsNullOrWhiteSpace(id) && !id.Contains(' ') && id.Length >= 3;
@@ -199,7 +210,7 @@ public static partial class WingetOutputParser
                 }
 
                 WingetListRow? row = null;
-                if (line.Length > columns[^1])
+                if (line.Length > columns[^1] && columns.Skip(1).All(c => IsCellBoundary(line, c)))
                 {
                     var name = Slice(line, columns[0], columns[1]);
                     var id = Slice(line, columns[1], columns[2]);
