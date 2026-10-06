@@ -59,18 +59,18 @@ jobs:
           -p:DebugType=none
           --output publish/${{ matrix.rid }}-selfcontained
 
+      # Asset names say who they are for: x64 is what almost everyone needs; ARM64 only runs on Snapdragon PCs.
       - name: Zip
         shell: pwsh
         run: |
-          Compress-Archive -Path publish/${{ matrix.rid }}/* -DestinationPath UpdateHub-${{ matrix.rid }}.zip
-          Compress-Archive -Path publish/${{ matrix.rid }}-selfcontained/* -DestinationPath UpdateHub-${{ matrix.rid }}-selfcontained.zip
+          $label = if ('${{ matrix.rid }}' -eq 'win-x64') { 'x64-Intel-AMD' } else { 'ARM64-SadeceSnapdragon' }
+          Compress-Archive -Path publish/${{ matrix.rid }}-selfcontained/* -DestinationPath "UpdateHub-$label.zip"
+          Compress-Archive -Path publish/${{ matrix.rid }}/* -DestinationPath "UpdateHub-$label-dotnet-gerekir.zip"
 
       - uses: actions/upload-artifact@v4
         with:
           name: UpdateHub-${{ matrix.rid }}
-          path: |
-            UpdateHub-${{ matrix.rid }}.zip
-            UpdateHub-${{ matrix.rid }}-selfcontained.zip
+          path: UpdateHub-*.zip
 
   # One release per tag (or per manual run that sets release_tag), built from both matrix jobs.
   release:
@@ -91,6 +91,10 @@ jobs:
           target_commitish: ${{ github.sha }}
           name: UpdateHub ${{ inputs.release_tag || github.ref_name }}
           body: |
-            **İndirme:** `UpdateHub-win-x64-selfcontained.zip` dosyasını indirip açın ve `UpdateHub.exe` dosyasını yönetici olarak çalıştırın (.NET kurulumu gerekmez).
-            ARM64 cihazlar için `UpdateHub-win-arm64-selfcontained.zip`. `-selfcontained` olmayan paketler .NET 8 Desktop Runtime ister.
+            ## Hangi dosyayı indirmeliyim?
+            - **Normal bilgisayar (Intel / AMD işlemci) → `UpdateHub-x64-Intel-AMD.zip`** ← neredeyse herkes için bu
+            - Snapdragon (ARM) işlemcili Windows cihaz → `UpdateHub-ARM64-SadeceSnapdragon.zip` (Intel/AMD'de "Bu uygulama bilgisayarınızda çalışamıyor" der)
+            - `-dotnet-gerekir` paketleri daha küçüktür ama .NET 8 Desktop Runtime kurulu olmalıdır.
+
+            Zip'i açın, `UpdateHub.exe` → sağ tık → **Yönetici olarak çalıştır**.
           files: dist/*.zip
